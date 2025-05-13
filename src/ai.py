@@ -1,11 +1,12 @@
 import chess
+import random
 
 class ChessAI:
     def __init__(self, color):
         self.color = color
-        self.total_moves_checked = 0
-        self.total_pruned_branches = 0
-        
+        self.calculations = 0
+        self.cutoffs = 0
+
         # Piece-Square Tables (Evaluation Matrices)
         self.pawn_eval_white = [
             [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0],
@@ -151,128 +152,79 @@ class ChessAI:
         
         return total_evaluation
 
-    def minimax(self, board, depth, maximizing_player, alpha=float('-inf'), beta=float('inf')):
+    def minimax(self, board, depth, alpha, beta, maximizing_player):
         """Minimax algorithm with alpha-beta pruning."""
+        self.calculations += 1  # Count every node evaluated
+
         if depth == 0 or board.is_game_over():
             return self.evaluate_board(board)
-        
+
         if maximizing_player:
             max_eval = float('-inf')
             for move in board.legal_moves:
                 board.push(move)
-                self.total_moves_checked += 1
-                eval = self.minimax(board, depth - 1, False, alpha, beta)
+                eval = self.minimax(board, depth - 1, alpha, beta, False)
                 board.pop()
-                
                 max_eval = max(max_eval, eval)
                 alpha = max(alpha, eval)
                 if beta <= alpha:
-                    self.total_pruned_branches += 1
+                    self.cutoffs += 1
                     break  # Beta cut-off
             return max_eval
         else:
             min_eval = float('inf')
             for move in board.legal_moves:
                 board.push(move)
-                self.total_moves_checked += 1
-                eval = self.minimax(board, depth - 1, True, alpha, beta)
+                eval = self.minimax(board, depth - 1, alpha, beta, True)
                 board.pop()
-                
                 min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
                 if beta <= alpha:
-                    self.total_pruned_branches += 1
+                    self.cutoffs += 1
                     break  # Alpha cut-off
             return min_eval
 
     def get_best_move(self, board, depth=3):
-        """Find the best move using minimax algorithm with alpha-beta pruning."""
-        self._reset_move_stats()
-        best_moves = []  # List to store all moves with the same best score
+        """Find the best move using minimax with alpha-beta pruning."""
+        if len(board.piece_map()) <= 10:
+            depth = 5
+        best_moves = []
         max_eval = float('-inf')
         alpha = float('-inf')
         beta = float('inf')
-        
+        self.calculations = 0
+        self.cutoffs = 0
+
+        # Đánh giá tất cả các nước đi hợp lệ
         for move in board.legal_moves:
             board.push(move)
-            self.total_moves_checked += 1
-            move_eval = self._minimax_with_stats(board, depth - 1, False, alpha, beta)
+            # Kiểm tra chiếu hết ngay lập tức
+            if board.is_checkmate():
+                board.pop()
+                return move
+
+            # Đánh giá nước đi
+            move_eval = self.minimax(board, depth - 1, alpha, beta, False)
             board.pop()
-            
-            if move_eval > max_eval:
+
+            # Cập nhật danh sách nước đi tốt nhất
+            if not best_moves or move_eval > max_eval:
                 max_eval = move_eval
-                best_moves = [move]  # Reset list with new best move
-            elif move_eval == max_eval:
-                best_moves.append(move)  # Add equally good move
-            
+                best_moves = [move]
+            elif move_eval == max_eval:  # Thêm nước đi có cùng giá trị
+                best_moves.append(move)
+
             alpha = max(alpha, move_eval)
-        
-        self._log_move_stats()
-        
-        # Return the first best move found
-        return best_moves[0] if best_moves else None
 
-    def _sort_moves_by_score(self, board, moves, maximizing_player):
-        """Sort moves by score to prune more efficiently"""
-        move_scores = []
-        for move in moves:
-            board.push(move)
-            score = self.evaluate_board(board)
-            board.pop()
-            move_scores.append((move, score))
-        
-        # Sort in descending order if maximizing, ascending order if minimizing
-        return [move for move, _ in sorted(move_scores, key=lambda x: x[1], reverse=maximizing_player)]
+        print(f"[ AI Move ] Calculations: {self.calculations}, Cutoffs: {self.cutoffs}, "
+              f"Pruned: {100 * self.cutoffs / self.calculations:.2f}%")
 
-    def _minimax_with_stats(self, board, depth, maximizing_player, alpha=float('-inf'), beta=float('inf')):
-        """Minimax algorithm with alpha-beta pruning and move tracking."""
-        if depth == 0 or board.is_game_over():
-            return self.evaluate_board(board)
-        
-        moves = list(board.legal_moves)
-        # Sort moves by score
-        moves = self._sort_moves_by_score(board, moves, maximizing_player)
-        
-        if maximizing_player:
-            max_eval = float('-inf')
-            for move in moves:
-                board.push(move)
-                self.total_moves_checked += 1
-                eval = self._minimax_with_stats(board, depth - 1, False, alpha, beta)
-                board.pop()
-                
-                max_eval = max(max_eval, eval)
-                alpha = max(alpha, eval)
-                
-                # Pruning condition
-                if beta <= alpha:
-                    self.total_pruned_branches += len(moves) - moves.index(move) - 1
-                    break  # Beta cut-off
-            return max_eval
+        # Chọn ngẫu nhiên từ các nước đi tốt nhất
+        if best_moves:
+            return random.choice(best_moves)
         else:
-            min_eval = float('inf')
-            for move in moves:
-                board.push(move)
-                self.total_moves_checked += 1
-                eval = self._minimax_with_stats(board, depth - 1, True, alpha, beta)
-                board.pop()
-                
-                min_eval = min(min_eval, eval)
-                beta = min(beta, eval)
-                
-                # Pruning condition
-                if beta <= alpha:
-                    self.total_pruned_branches += len(moves) - moves.index(move) - 1
-                    break  # Alpha cut-off
-            return min_eval
-
-    def _reset_move_stats(self):
-        self.total_moves_checked = 0
-        self.total_pruned_branches = 0
-
-    def _log_move_stats(self):
-        print(f'Total moves checked: {self.total_moves_checked}')
-        print(f'Total pruned branches: {self.total_pruned_branches}')
+            # Nếu không tìm được nước đi tốt, lấy nước đi đầu tiên có thể
+            return next(board.legal_moves, None)
 
     def choose_move(self, board):
         """Choose a move for the AI."""

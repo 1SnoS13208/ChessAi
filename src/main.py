@@ -169,7 +169,7 @@ class Main:
                             
                             if self.game.play_move(move_uci):
                                 # Print user's move details
-                                move_info = f"\nUser Move: {piece.symbol().upper() if piece else 'None'} from {from_square} to {to_square}"
+                                move_info = f"\n[User Move] {piece.symbol().upper() if piece else 'None'} from {from_square} to {to_square}"
                                 if captured:
                                     move_info += f" captures {captured.symbol().upper()}"
                                 print(move_info)
