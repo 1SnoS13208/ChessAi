@@ -11,7 +11,7 @@ WIDTH, HEIGHT = 640, 640
 SQSIZE = 80
 
 class Main:
-    def __init__(self, ai_mode=False):
+    def __init__(self, ai_mode=True):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('Chess')
@@ -161,15 +161,17 @@ class Main:
                         if self.selected_square != clicked_square:
                             # Try to make a move
                             move_uci = self._get_uci(self.selected_square, clicked_square)
+                            # Get piece information before making the move
+                            piece = self.game.board.get_piece_at(self.selected_square)
+                            captured = self.game.board.get_piece_at(clicked_square)
+                            from_square = chess.square_name(self.selected_square)
+                            to_square = chess.square_name(clicked_square)
+                            
                             if self.game.play_move(move_uci):
                                 # Print user's move details
-                                from_square = chess.square_name(self.selected_square)
-                                to_square = chess.square_name(clicked_square)
-                                piece = self.game.board.get_piece_at(self.selected_square)
-                                captured = self.game.board.get_piece_at(clicked_square)
-                                move_info = f"\nUser Move: {piece} from {from_square} to {to_square}"
+                                move_info = f"\nUser Move: {piece.symbol().upper() if piece else 'None'} from {from_square} to {to_square}"
                                 if captured:
-                                    move_info += f" captures {captured}"
+                                    move_info += f" captures {captured.symbol().upper()}"
                                 print(move_info)
                                 # Track the last move squares for highlighting
                                 from_sq = chess.parse_square(move_uci[0:2])
