@@ -188,43 +188,37 @@ class ChessAI:
         """Find the best move using minimax with alpha-beta pruning."""
         if len(board.piece_map()) <= 10:
             depth = 5
-        best_moves = []
+        best_move = None
         max_eval = float('-inf')
         alpha = float('-inf')
         beta = float('inf')
         self.calculations = 0
         self.cutoffs = 0
 
-        # Đánh giá tất cả các nước đi hợp lệ
+        # Evaluate all legal moves
         for move in board.legal_moves:
             board.push(move)
-            # Kiểm tra chiếu hết ngay lập tức
+            # Check for immediate checkmate
             if board.is_checkmate():
                 board.pop()
                 return move
 
-            # Đánh giá nước đi
+            # Evaluate the move
             move_eval = self.minimax(board, depth - 1, alpha, beta, False)
             board.pop()
 
-            # Cập nhật danh sách nước đi tốt nhất
-            if not best_moves or move_eval > max_eval:
+            # Update best move
+            if best_move is None or move_eval > max_eval:
                 max_eval = move_eval
-                best_moves = [move]
-            elif move_eval == max_eval:  # Thêm nước đi có cùng giá trị
-                best_moves.append(move)
+                best_move = move
 
             alpha = max(alpha, move_eval)
 
         print(f"[ AI Move ] Calculations: {self.calculations}, Cutoffs: {self.cutoffs}, "
               f"Pruned: {100 * self.cutoffs / self.calculations:.2f}%")
 
-        # Chọn ngẫu nhiên từ các nước đi tốt nhất
-        if best_moves:
-            return random.choice(best_moves)
-        else:
-            # Nếu không tìm được nước đi tốt, lấy nước đi đầu tiên có thể
-            return next(board.legal_moves, None)
+        # Return best move or first legal move if none found
+        return best_move if best_move else next(board.legal_moves, None)
 
     def choose_move(self, board):
         """Choose a move for the AI."""
