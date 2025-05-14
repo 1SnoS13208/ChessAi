@@ -152,6 +152,27 @@ class ChessAI:
         
         return total_evaluation
 
+    # def minimax(self, board, depth, maximizing_player):
+    #     """Minimax algorithm."""
+    #     if depth == 0 or board.is_game_over():
+    #         return self.evaluate_board(board)       
+    #     if maximizing_player:
+    #         max_eval = float('-inf')
+    #         for move in board.legal_moves:
+    #             board.push(move)
+    #             eval = self.minimax(board, depth - 1, False)
+    #             board.pop()
+    #             max_eval = max(max_eval, eval)
+    #         return max_eval
+    #     else:
+    #         min_eval = float('inf')
+    #         for move in board.legal_moves:
+    #             board.push(move)
+    #             eval = self.minimax(board, depth - 1, True)
+    #             board.pop()
+    #             min_eval = min(min_eval, eval)
+    #         return min_eval
+    
     def minimax(self, board, depth, alpha, beta, maximizing_player):
         """Minimax algorithm with alpha-beta pruning."""
         self.calculations += 1  # Count every node evaluated
