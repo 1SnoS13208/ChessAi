@@ -11,7 +11,7 @@ WIDTH, HEIGHT = 640, 640
 SQSIZE = 80
 
 class Main:
-    def __init__(self, ai_mode=True):
+    def __init__(self, ai_mode=True, ai_depth=3, use_alpha_beta=True):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('Chess')
@@ -20,8 +20,8 @@ class Main:
         self.running = True
         self.ai_mode = ai_mode
         self.last_player_move_time = pygame.time.get_ticks()
-        self.ai_depth = 3  # Default depth of AI
-        self.use_alpha_beta = True  # Default value for Alpha-Beta algorithm
+        self.ai_depth = ai_depth  # Default depth of AI
+        self.use_alpha_beta = use_alpha_beta  # Default value for Alpha-Beta algorithm
 
 
     def _show_game_end_screen(self, result):
@@ -284,5 +284,6 @@ class Main:
         
 
 if __name__ == "__main__":
-    app = Main()
+    # Configure parameters here
+    app = Main(ai_mode=True, ai_depth=3, use_alpha_beta=True)
     app.mainloop()

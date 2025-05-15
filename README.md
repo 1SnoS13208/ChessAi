@@ -17,10 +17,10 @@ pip install pygame python-chess
 
 ## Running the Game
 
-The recommended way to launch the game is through the launcher:
+Run the game directly:
 
 ```
-python src/launch.py
+python src/main.py
 ```
 
 This will start the game with default settings:
@@ -30,23 +30,16 @@ This will start the game with default settings:
 
 ### Customizing Game Parameters
 
-You can easily customize the game parameters by editing the values in `src/launch.py`:
+You can easily customize the game parameters by editing the values in `src/main.py`:
 
 ```python
 # Configure parameters here
-launch(
+app = Main(
     ai_mode=True,     # True: Play against AI, False: Two human players
-    depth=3,          # AI search depth (1-7)
-    alpha_beta=True   # True: Use Alpha-Beta pruning, False: Standard Minimax
+    ai_depth=3,       # AI search depth (1-7)
+    use_alpha_beta=True   # True: Use Alpha-Beta pruning, False: Standard Minimax
 )
-```
-
-Or import and use in your own code:
-```python
-from src.launch import launch
-
-# Launch with custom parameters
-launch(ai_mode=True, depth=4, alpha_beta=False)
+app.mainloop()
 ```
 
 ## Game Controls
@@ -59,17 +52,12 @@ launch(ai_mode=True, depth=4, alpha_beta=False)
 
 ## Project Structure and Classes
 
-### Launcher (`launch.py`)
-- Main entry point for the application
-- Provides a simple way to launch the game with custom parameters
-- Allows setting AI mode, search depth, and algorithm selection
-- Can be imported and used in other Python code
-
 ### Main Class (`main.py`)
+- Main entry point for the application
 - Main class controlling the game flow
 - Handles the main game loop and player events
 - Renders game interface and end game screens
-- Manages AI game mode
+- Manages AI game mode and parameters
 
 ### Game Class (`game.py`) 
 - Manages game state
@@ -103,10 +91,10 @@ launch(ai_mode=True, depth=4, alpha_beta=False)
 
 The AI's behavior can be customized in two ways:
 
-### 1. Through the Launcher
-The easiest way to customize the AI is by modifying the parameters in `launch.py`:
-- `depth`: Sets the AI search depth (1-7)
-- `alpha_beta`: Toggles between Alpha-Beta pruning and standard Minimax
+### 1. Through the Main File
+The easiest way to customize the AI is by modifying the parameters in `main.py`:
+- `ai_depth`: Sets the AI search depth (1-7)
+- `use_alpha_beta`: Toggles between Alpha-Beta pruning and standard Minimax
 
 ### 2. During Gameplay
 You can also adjust the AI during gameplay:
