@@ -5,7 +5,7 @@ class ChessAI:
     def __init__(self, color):
         self.color = color
         self.calculations = 0
-        self.cutoffs = 0
+        self.calculations_alpha_beta = 0
 
         # Piece-Square Tables (Evaluation Matrices)
         self.pawn_eval_white = [
@@ -152,30 +152,32 @@ class ChessAI:
         
         return total_evaluation
 
-    # def minimax(self, board, depth, maximizing_player):
-    #     """Minimax algorithm."""
-    #     if depth == 0 or board.is_game_over():
-    #         return self.evaluate_board(board)       
-    #     if maximizing_player:
-    #         max_eval = float('-inf')
-    #         for move in board.legal_moves:
-    #             board.push(move)
-    #             eval = self.minimax(board, depth - 1, False)
-    #             board.pop()
-    #             max_eval = max(max_eval, eval)
-    #         return max_eval
-    #     else:
-    #         min_eval = float('inf')
-    #         for move in board.legal_moves:
-    #             board.push(move)
-    #             eval = self.minimax(board, depth - 1, True)
-    #             board.pop()
-    #             min_eval = min(min_eval, eval)
-    #         return min_eval
+    def minimax(self, board, depth, maximizing_player):
+        """Minimax algorithm."""
+        self.calculations += 1
+
+        if depth == 0 or board.is_game_over():
+            return self.evaluate_board(board)       
+        if maximizing_player:
+            max_eval = float('-inf')
+            for move in board.legal_moves:
+                board.push(move)
+                eval = self.minimax(board, depth - 1, False)
+                board.pop()
+                max_eval = max(max_eval, eval)
+            return max_eval
+        else:
+            min_eval = float('inf')
+            for move in board.legal_moves:
+                board.push(move)
+                eval = self.minimax(board, depth - 1, True)
+                board.pop()
+                min_eval = min(min_eval, eval)
+            return min_eval
     
-    def minimax(self, board, depth, alpha, beta, maximizing_player):
+    def minimax_alpha_beta(self, board, depth, alpha, beta, maximizing_player):
         """Minimax algorithm with alpha-beta pruning."""
-        self.calculations += 1  # Count every node evaluated
+        self.calculations_alpha_beta += 1  # Count every node evaluated
 
         if depth == 0 or board.is_game_over():
             return self.evaluate_board(board)
@@ -184,29 +186,27 @@ class ChessAI:
             max_eval = float('-inf')
             for move in board.legal_moves:
                 board.push(move)
-                eval = self.minimax(board, depth - 1, alpha, beta, False)
+                eval = self.minimax_alpha_beta(board, depth - 1, alpha, beta, False)
                 board.pop()
                 max_eval = max(max_eval, eval)
                 alpha = max(alpha, eval)
                 if beta <= alpha:
-                    self.cutoffs += 1
                     break  # Beta cut-off
             return max_eval
         else:
             min_eval = float('inf')
             for move in board.legal_moves:
                 board.push(move)
-                eval = self.minimax(board, depth - 1, alpha, beta, True)
+                eval = self.minimax_alpha_beta(board, depth - 1, alpha, beta, True)
                 board.pop()
                 min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
                 if beta <= alpha:
-                    self.cutoffs += 1
                     break  # Alpha cut-off
             return min_eval
 
-    def get_best_move(self, board, depth=3):
-        """Find the best move using minimax with alpha-beta pruning."""
+    def get_best_move(self, board, depth=3, use_alpha_beta=True):
+        """Find the best move using minimax with or without alpha-beta pruning."""
         if len(board.piece_map()) <= 10:
             depth = 5
         best_move = None
@@ -214,6 +214,7 @@ class ChessAI:
         alpha = float('-inf')
         beta = float('inf')
         self.calculations = 0
+        self.calculations_alpha_beta = 0
         self.cutoffs = 0
 
         # Evaluate all legal moves
@@ -222,10 +223,14 @@ class ChessAI:
             # Check for immediate checkmate
             if board.is_checkmate():
                 board.pop()
-                return move
+                return move, self.calculations, self.calculations_alpha_beta, self.cutoffs
 
-            # Evaluate the move
-            move_eval = self.minimax(board, depth - 1, alpha, beta, False)
+            # Evaluate the move using the selected algorithm
+            if use_alpha_beta:
+                move_eval = self.minimax_alpha_beta(board, depth - 1, alpha, beta, False)
+            else:
+                move_eval = self.minimax(board, depth - 1, False)
+            
             board.pop()
 
             # Update best move
@@ -233,14 +238,13 @@ class ChessAI:
                 max_eval = move_eval
                 best_move = move
 
-            alpha = max(alpha, move_eval)
+            if use_alpha_beta:
+                alpha = max(alpha, move_eval)
 
-        print(f"[ AI Move ] Calculations: {self.calculations}, Cutoffs: {self.cutoffs}, "
-              f"Pruned: {100 * self.cutoffs / self.calculations:.2f}%")
+        # Return best move or first legal move if none found, along with calculation statistics
+        return best_move if best_move else next(board.legal_moves, None), self.calculations, self.calculations_alpha_beta
 
-        # Return best move or first legal move if none found
-        return best_move if best_move else next(board.legal_moves, None)
-
-    def choose_move(self, board):
+    def choose_move(self, board, use_alpha_beta=True, depth=3):
         """Choose a move for the AI."""
-        return self.get_best_move(board)
+        move, calculations, calculations_alpha_beta = self.get_best_move(board, depth=depth, use_alpha_beta=use_alpha_beta)
+        return move, calculations, calculations_alpha_beta

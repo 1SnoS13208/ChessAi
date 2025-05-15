@@ -20,7 +20,7 @@ class Main:
         self.running = True
         self.ai_mode = ai_mode
         self.last_player_move_time = pygame.time.get_ticks()
-        
+        self.ai_depth = 3  # Default depth of AI
 
 
     def _show_game_end_screen(self, result):
@@ -106,13 +106,45 @@ class Main:
                 self.game.board.board.turn == chess.BLACK and 
                 self.selected_square is None and 
                 current_time - self.last_player_move_time > 1000):  # Wait 1 second after player move
-                ai_move = self.game.ai.choose_move(self.game.board.board)
+                
+                # Chọn thuật toán: True = Alpha-Beta, False = Minimax thông thường
+                use_alpha_beta = True  # Thay đổi thành False để sử dụng Minimax thông thường
+                
+                ai_move, calculations, calculations_alpha_beta = self.game.ai.choose_move(
+                    self.game.board.board, 
+                    use_alpha_beta=use_alpha_beta,
+                    depth=self.ai_depth  # Sử dụng độ sâu hiện tại
+                )
+                
                 if ai_move:
+                    # Get piece and destination information
+                    from_square = chess.square_name(ai_move.from_square)
+                    to_square = chess.square_name(ai_move.to_square)
+                    piece = self.game.board.get_piece_at(ai_move.from_square)
+                    captured = self.game.board.get_piece_at(ai_move.to_square)
+                    
                     # Check if the move is a capture
-                    if self.game.board.get_piece_at(ai_move.to_square):
+                    if captured:
                         self.game.capture_sound.play()
                     else:
                         self.game.move_sound.play()
+                    
+                    # Print AI's move details
+                    move_info = f"AI Move: {self._get_piece_full_name(piece)} from {from_square} to {to_square}"
+                    if captured:
+                        move_info += f" captures {self._get_piece_full_name(captured)}"
+                    print(move_info)
+                    
+                    # Print calculation information
+                    if use_alpha_beta:
+                        print(f"Calculation: {calculations_alpha_beta} (Alpha-Beta)")
+                    else:
+                        print(f"Calculation: {calculations} (Standard Minimax)")
+                    
+                    # Print comparison if both algorithms were used
+                    if calculations > 0 and calculations_alpha_beta > 0:
+                        reduction = (1 - calculations_alpha_beta / calculations) * 100 if calculations > 0 else 0
+                        print(f"Comparison: Alpha-Beta reduces calculations by {reduction:.2f}%")
                     
                     self.game.board.board.push(ai_move)
                     # Track AI move for highlighting
@@ -140,6 +172,11 @@ class Main:
             turn_render = font.render(turn_text, True, (255, 255, 255))
             self.screen.blit(turn_render, (10, 10))
             
+            # Display AI depth
+            font = pygame.font.SysFont('Arial', 20)
+            ai_depth_text = f"AI Depth: {self.ai_depth}"
+            ai_depth_render = font.render(ai_depth_text, True, (255, 255, 255))
+            self.screen.blit(ai_depth_render, (10, 40))
 
 
             for event in pygame.event.get():
@@ -169,9 +206,9 @@ class Main:
                             
                             if self.game.play_move(move_uci):
                                 # Print user's move details
-                                move_info = f"\n[User Move] {piece.symbol().upper() if piece else 'None'} from {from_square} to {to_square}"
+                                move_info = f"\nUser Move: {self._get_piece_full_name(piece)} from {from_square} to {to_square}"
                                 if captured:
-                                    move_info += f" captures {captured.symbol().upper()}"
+                                    move_info += f" captures {self._get_piece_full_name(captured)}"
                                 print(move_info)
                                 # Track the last move squares for highlighting
                                 from_sq = chess.parse_square(move_uci[0:2])
@@ -196,6 +233,18 @@ class Main:
                     if event.key == pygame.K_r:
                         self.game.reset()
                         self.selected_square = None
+                    
+                    # Tăng độ sâu AI với phím +
+                    if event.key == pygame.K_PLUS or event.key == pygame.K_KP_PLUS or event.key == pygame.K_EQUALS:
+                        if self.ai_depth < 7:
+                            self.ai_depth += 1
+                        print(f"\nAI depth increased to {self.ai_depth}")
+                    
+                    # Giảm độ sâu AI với phím -
+                    if event.key == pygame.K_MINUS or event.key == pygame.K_KP_MINUS:
+                        if self.ai_depth > 1:  # Không cho phép độ sâu nhỏ hơn 1
+                            self.ai_depth -= 1
+                            print(f"\nAI depth decreased to {self.ai_depth}")
 
 
             pygame.display.flip()
@@ -207,6 +256,28 @@ class Main:
         to_file = chr((to_square % 8) + ord('a'))
         to_rank = str((to_square // 8) + 1)
         return f"{from_file}{from_rank}{to_file}{to_rank}"
+    
+    def _get_piece_full_name(self, piece):
+        """Get the full name of a chess piece without color."""
+        if piece is None:
+            return "None"
+            
+        piece_names = {
+            'P': 'Pawn',
+            'N': 'Knight',
+            'B': 'Bishop',
+            'R': 'Rook',
+            'Q': 'Queen',
+            'K': 'King',
+            'p': 'Pawn',
+            'n': 'Knight',
+            'b': 'Bishop',
+            'r': 'Rook',
+            'q': 'Queen',
+            'k': 'King'
+        }
+        
+        return piece_names.get(piece.symbol(), piece.symbol())
         
 
 if __name__ == "__main__":
