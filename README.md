@@ -36,11 +36,21 @@ You can easily customize the game parameters by editing the values in `src/main.
 # Configure parameters here
 app = Main(
     ai_mode=True,     # True: Play against AI, False: Two human players
-    ai_depth=3,       # AI search depth (1-7)
+    ai_depth=3,       # AI search depth (1-5)
     use_alpha_beta=True   # True: Use Alpha-Beta pruning, False: Standard Minimax
 )
 app.mainloop()
 ```
+
+## Game Features
+
+- Complete chess game with all standard rules
+- AI opponent using Minimax algorithm with Alpha-Beta pruning
+- Visual highlighting of legal moves and captures
+- Sound effects for moves and captures
+- End game detection (checkmate, stalemate)
+- AI calculation time display
+- Ability to adjust AI difficulty during gameplay
 
 ## Game Controls
 - Click to select and move chess pieces
@@ -93,7 +103,7 @@ The AI's behavior can be customized in two ways:
 
 ### 1. Through the Main File
 The easiest way to customize the AI is by modifying the parameters in `main.py`:
-- `ai_depth`: Sets the AI search depth (1-7)
+- `ai_depth`: Sets the AI search depth (1-5)
 - `use_alpha_beta`: Toggles between Alpha-Beta pruning and standard Minimax
 
 ### 2. During Gameplay

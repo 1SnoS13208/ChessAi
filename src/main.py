@@ -22,6 +22,7 @@ class Main:
         self.last_player_move_time = pygame.time.get_ticks()
         self.ai_depth = ai_depth  # Default depth of AI
         self.use_alpha_beta = use_alpha_beta  # Default value for Alpha-Beta algorithm
+        self.ai_calculation_time = 0  # Time taken for AI to calculate its move
 
 
     def _show_game_end_screen(self, result):
@@ -108,11 +109,17 @@ class Main:
                 self.selected_square is None and 
                 current_time - self.last_player_move_time > 1000):  # Wait 1 second after player move
                 
+                # Start timing AI calculation
+                ai_start_time = time.time()
+                
                 ai_move, calculations, calculations_alpha_beta = self.game.ai.choose_move(
                     self.game.board.board, 
                     use_alpha_beta=self.use_alpha_beta,
                     depth=self.ai_depth  # Use current depth
                 )
+                
+                # End timing and store calculation time
+                self.ai_calculation_time = time.time() - ai_start_time
                 
                 if ai_move:
                     # Get piece and destination information
@@ -136,8 +143,10 @@ class Main:
                     # Print calculation information
                     if self.use_alpha_beta:
                         print(f"Calculation: {calculations_alpha_beta} (Alpha-Beta)")
+                        print(f"Calculation time: {self.ai_calculation_time:.3f} seconds")
                     else:
                         print(f"Calculation: {calculations} (Standard Minimax)")
+                        print(f"Calculation time: {self.ai_calculation_time:.3f} seconds")
                     
                     # Print comparison if both algorithms were used
                     if calculations > 0 and calculations_alpha_beta > 0:
@@ -175,6 +184,11 @@ class Main:
             ai_depth_text = f"AI Depth: {self.ai_depth}"
             ai_depth_render = font.render(ai_depth_text, True, (255, 255, 255))
             self.screen.blit(ai_depth_render, (10, 40))
+            
+            # Display AI calculation time
+            ai_time_text = f"AI Calculation Time: {self.ai_calculation_time:.3f} seconds"
+            ai_time_render = font.render(ai_time_text, True, (255, 255, 255))
+            self.screen.blit(ai_time_render, (10, 70))
 
 
             for event in pygame.event.get():
@@ -234,7 +248,7 @@ class Main:
                     
                     # Tăng độ sâu AI với phím +
                     if event.key == pygame.K_PLUS or event.key == pygame.K_KP_PLUS or event.key == pygame.K_EQUALS:
-                        if self.ai_depth < 7:
+                        if self.ai_depth < 5:
                             self.ai_depth += 1
                         print(f"\nAI depth increased to {self.ai_depth}")
                     
