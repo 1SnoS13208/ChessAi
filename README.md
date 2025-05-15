@@ -17,24 +17,53 @@ pip install pygame python-chess
 
 ## Running the Game
 
-### Standard Chess Mode
+The recommended way to launch the game is through the launcher:
+
 ```
-python src/main.py
+python src/launch.py
 ```
 
-### AI Game Mode
+This will start the game with default settings:
+- AI Mode: Enabled (play against AI)
+- AI Depth: 3
+- Algorithm: Minimax with Alpha-Beta pruning
+
+### Customizing Game Parameters
+
+You can easily customize the game parameters by editing the values in `src/launch.py`:
+
+```python
+# Configure parameters here
+launch(
+    ai_mode=True,     # True: Play against AI, False: Two human players
+    depth=3,          # AI search depth (1-7)
+    alpha_beta=True   # True: Use Alpha-Beta pruning, False: Standard Minimax
+)
 ```
-python src/main.py
+
+Or import and use in your own code:
+```python
+from src.launch import launch
+
+# Launch with custom parameters
+launch(ai_mode=True, depth=4, alpha_beta=False)
 ```
-- The game starts in AI mode by default
-- Press 'r' to restart the game at any time
 
 ## Game Controls
 - Click to select and move chess pieces
 - 'r': Restart the game
+- '+': Increase AI search depth (makes AI stronger but slower)
+- '-': Decrease AI search depth (makes AI faster but weaker)
+- 'a': Toggle between Alpha-Beta pruning and standard Minimax algorithms
 - Close window to exit
 
 ## Project Structure and Classes
+
+### Launcher (`launch.py`)
+- Main entry point for the application
+- Provides a simple way to launch the game with custom parameters
+- Allows setting AI mode, search depth, and algorithm selection
+- Can be imported and used in other Python code
 
 ### Main Class (`main.py`)
 - Main class controlling the game flow
@@ -58,7 +87,7 @@ python src/main.py
 - Implements AI opponent using minimax algorithm with alpha-beta pruning
 - Evaluates piece positions using position value tables
 - Calculates best moves for AI
-- Tracks number of moves checked and pruned branches
+- Tracks number of calculations performed
 
 ### Config Class (`config.py`)
 - Manages game configuration and interface
@@ -72,13 +101,30 @@ python src/main.py
 
 ## Customizing the AI
 
-The AI's behavior can be customized by modifying the following parameters in `src/ai.py`:
+The AI's behavior can be customized in two ways:
 
-### Search Depth
-- In `ai.py`, find the `get_best_move` method call in the `choose_move` method
-- Modify the `depth` parameter (default is 3)
+### 1. Through the Launcher
+The easiest way to customize the AI is by modifying the parameters in `launch.py`:
+- `depth`: Sets the AI search depth (1-7)
+- `alpha_beta`: Toggles between Alpha-Beta pruning and standard Minimax
+
+### 2. During Gameplay
+You can also adjust the AI during gameplay:
+- Press '+' to increase AI search depth (makes AI stronger but slower)
+- Press '-' to decrease AI search depth (makes AI faster but weaker)
+- Press 'a' to toggle between Alpha-Beta pruning and standard Minimax
+
+### Algorithm Details
+
+#### Search Depth
 - Higher depth values make the AI look further ahead but will make it think longer
-- Example: `depth=4` for stronger play, `depth=2` for faster moves
+- Recommended values: 3-4 for casual play, 5-7 for stronger AI (but slower)
+- The depth is fixed and will not automatically change during gameplay
+
+#### Algorithm Selection
+- Alpha-Beta pruning is much faster than standard Minimax, especially at higher depths
+- Standard Minimax is useful for educational purposes to see the difference in performance
+- You can compare the number of calculations between the two algorithms
 
 ### Piece Values
 You can modify the base values of pieces by changing the values in the `_get_piece_value` method:

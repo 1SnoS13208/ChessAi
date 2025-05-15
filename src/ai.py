@@ -207,8 +207,6 @@ class ChessAI:
 
     def get_best_move(self, board, depth=3, use_alpha_beta=True):
         """Find the best move using minimax with or without alpha-beta pruning."""
-        if len(board.piece_map()) <= 10:
-            depth = 5
         best_move = None
         max_eval = float('-inf')
         alpha = float('-inf')

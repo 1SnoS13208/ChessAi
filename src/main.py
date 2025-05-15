@@ -21,6 +21,7 @@ class Main:
         self.ai_mode = ai_mode
         self.last_player_move_time = pygame.time.get_ticks()
         self.ai_depth = 3  # Default depth of AI
+        self.use_alpha_beta = True  # Default value for Alpha-Beta algorithm
 
 
     def _show_game_end_screen(self, result):
@@ -107,13 +108,10 @@ class Main:
                 self.selected_square is None and 
                 current_time - self.last_player_move_time > 1000):  # Wait 1 second after player move
                 
-                # Chọn thuật toán: True = Alpha-Beta, False = Minimax thông thường
-                use_alpha_beta = True  # Thay đổi thành False để sử dụng Minimax thông thường
-                
                 ai_move, calculations, calculations_alpha_beta = self.game.ai.choose_move(
                     self.game.board.board, 
-                    use_alpha_beta=use_alpha_beta,
-                    depth=self.ai_depth  # Sử dụng độ sâu hiện tại
+                    use_alpha_beta=self.use_alpha_beta,
+                    depth=self.ai_depth  # Use current depth
                 )
                 
                 if ai_move:
@@ -136,7 +134,7 @@ class Main:
                     print(move_info)
                     
                     # Print calculation information
-                    if use_alpha_beta:
+                    if self.use_alpha_beta:
                         print(f"Calculation: {calculations_alpha_beta} (Alpha-Beta)")
                     else:
                         print(f"Calculation: {calculations} (Standard Minimax)")
@@ -245,7 +243,12 @@ class Main:
                         if self.ai_depth > 1:  # Không cho phép độ sâu nhỏ hơn 1
                             self.ai_depth -= 1
                             print(f"\nAI depth decreased to {self.ai_depth}")
-
+                    
+                    # Chuyển đổi giữa Alpha-Beta và Minimax thông thường với phím a
+                    if event.key == pygame.K_a:
+                        self.use_alpha_beta = not self.use_alpha_beta
+                        algorithm = "Alpha-Beta Pruning" if self.use_alpha_beta else "Standard Minimax"
+                        print(f"\nSwitched to {algorithm} algorithm")
 
             pygame.display.flip()
 
