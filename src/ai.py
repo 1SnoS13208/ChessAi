@@ -213,7 +213,6 @@ class ChessAI:
         beta = float('inf')
         self.calculations = 0
         self.calculations_alpha_beta = 0
-        self.cutoffs = 0
 
         # Evaluate all legal moves
         for move in board.legal_moves:
@@ -221,7 +220,7 @@ class ChessAI:
             # Check for immediate checkmate
             if board.is_checkmate():
                 board.pop()
-                return move, self.calculations, self.calculations_alpha_beta, self.cutoffs
+                return move, self.calculations, self.calculations_alpha_beta
 
             # Evaluate the move using the selected algorithm
             if use_alpha_beta:
