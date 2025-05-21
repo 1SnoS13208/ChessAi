@@ -6,7 +6,7 @@ This is a chess game with an AI opponent implemented using Pygame and Python-Che
 ## Prerequisites
 - Python 3.8+
 - Pygame
-- Python-Chess library
+- python-chess library
 
 ## Installation
 
